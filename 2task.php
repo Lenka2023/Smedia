@@ -46,9 +46,66 @@ class CSV {
      * @return array;
      */
     public function getCSV() {
-		$phones = array( '971527139011', '171527139011' );
+	 $allCount=0;
+	 $sameCountryCount=0;	
+		//$db=new mysqli('localhost', 'smedia', '', "smedia");
+	/*if(mysqli_connect_errno()){
+		printf("Error connect to DB:%S\n",mysqli_error($db));
+		exit();
+	}*/
+	//$query1="SELECT* FROM `smedia`";
+	//$RES=mysqli_query($db, $query1);
+//$result=mysqli_fetch_array($RES);	
+//var_dump($result[1]);
+	//$query="INSERT INTO `smedia` (id, Date, duration, Phone, ip)
+//VALUES (1, '2020-11-04', 3, 4, 5)";
+//mysqli_query($db, $query);	
+        $handle = fopen($this->_csv_file, "r"); //Открываем csv для чтения
+		$header = fgetcsv ($handle);
+	$host = 'localhost';
+    $db   = 'smedia';
+    $user = 'smedia';
+    $pass = '';
+    $charset = 'utf8';
+	$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+		$db = new PDO($dsn, $user, $password, 
+    array(PDO::MYSQL_ATTR_LOCAL_INFILE => true)
+);
+   $ip = $db->prepare("SELECT ip FROM `smedia`");
+   $ip->execute();
+$iparray = $ip->fetchAll(PDO::FETCH_ASSOC);
+$ip0 = array();
+ foreach($iparray as $key=>$value ){
+	array_push($ip0,$value['ip']);
+									}
+//print_r($ip0);
+//print_r($iparray[1]);
+ $phone = $db->prepare("SELECT Phone FROM `smedia` ");
+  $phone->execute();
+$phonearray = $phone->fetchAll(PDO::FETCH_ASSOC);
+$phone0 = array();
+ foreach($phonearray as $key=>$value ){
+	array_push($phone0,$value['Phone']);
+									}
+//print_r($phone0);
+// print_r($phonearray);
+	$sth = $db->prepare("LOAD DATA  LOCAL INFILE  'cdrs.csv' 
+INTO TABLE `smedia`  
+FIELDS TERMINATED BY ','
+ESCAPED BY '\\'
+OPTIONALLY ENCLOSED BY '\"' 
+LINES TERMINATED BY ',,,\r\n'
+IGNORE 1 LINES 
+(@id, @Date, @duration, @Phone, @ip)
+SET Date = STR_TO_DATE(@Date, '%b-%d-%Y %h:%i:%s %p'),
+    Phone = TRIM(BOTH '\'' FROM @Phone),
+	 id = TRIM(BOTH '\'' FROM @id),
+    duration = 1 * TRIM(TRAILING 'Secs' FROM @duration),
+    ip = NULLIF(@ip, 'null')");
+	$sth->execute();
+$array = $sth->fetchAll(PDO::FETCH_ASSOC);
+// var_dump($array);
 
-// get your list of country codes
 $ccodes = array(
    '93' => 'AF',
 '355' => 'AL',
@@ -260,7 +317,7 @@ $ccodes = array(
 
 krsort( $ccodes );
 
-foreach( $phones as $pn )
+foreach( $phone0 as $pn )
 {
     foreach( $ccodes as $key=>$value )
     {
@@ -272,36 +329,43 @@ foreach( $phones as $pn )
         }
     }
 }
+$phonecountries= array();
+ foreach($phonecountry as $key=>$value ){
+	array_push($phonecountries,$value);
+									}
+//print_r($phonecountries);
 
-//print_r( $phonecountry );
-//for($i=o;$i<100;$i++){
-	 $allCount=0;
-	 $sameCountryCount=0;
+/* foreach( $phonecountry as $key=>$value )
+    {
+var_dump( $value );
+}*/
+	
 	
 
-
+for($i=0;$i<100;$i++){
 
 		
 		$ip='116.52.75.78'; 
 $access_key = 'd9f000dbc0237078dfb39bf8033d244c';
 // инициализируем новый сеанс cURL
-$ch = curl_init('http://api.ipstack.com/'.$ip.'?access_key='.$access_key.'');
+$ch[$i] = curl_init('http://api.ipstack.com/'.$ip0[$i].'?access_key='.$access_key.'');
 // если нужно выбрать только страну, то можно так
 //$ch = curl_init('http://api.ipstack.com/'.$ip.'?access_key='.$access_key.'&fields=country_code');
+//echo $ch;
 // устанавливаем параметр для указанного сеанса cURL
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
 // выполняем запрос cURL и сохраняем данные в $json
-$json = curl_exec($ch);
+$json[$i] = curl_exec($ch[$i]);
 // завершаем сеанс cURL
-curl_close($ch);
+curl_close($ch[$i]);
 // декодируем JSON ответ
-$api_result = json_decode($json, true);
+$api_result[$i] = json_decode($json[$i], true);
 
 // получаем ISO-код страны
-$country = $api_result['country_code'];
-//echo $country;
-
- /*if( $country == 'AF' ) $continent = 'Asia';
+$country[$i] = $api_result['country_code'];
+echo $country[$i];
+}
+  /*if( $country == 'AF' ) $continent = 'Asia';
     if( $country == 'AX' ) $continent = 'Europe';
     if( $country == 'AL' ) $continent = 'Europe';
     if( $country == 'DZ' ) $continent = 'Africa';
@@ -547,252 +611,252 @@ $country = $api_result['country_code'];
     if( $country == 'YE' ) $continent = 'Asia';
     if( $country == 'ZM' ) $continent = 'Africa';
     if( $country == 'ZW' ) $continent = 'Africa';*/
-	/*if( $country == 'AF' ) $phonecontinent= 'Asia';
-    if( $country == 'AX' ) $phonecontinent= 'Europe';
-    if( $country == 'AL' ) $phonecontinent= 'Europe';
-    if( $country == 'DZ' ) $phonecontinent= 'Africa';
-    if( $country == 'AS' ) $phonecontinent= 'Oceania';
-    if( $country == 'AD' ) $phonecontinent= 'Europe';
-    if( $country == 'AO' ) $phonecontinent= 'Africa';
-    if( $country == 'AI' ) $phonecontinent= 'North America';
-    if( $country == 'AQ' ) $phonecontinent= 'Antarctica';
-    if( $country == 'AG' ) $phonecontinent= 'North America';
-    if( $country == 'AR' ) $phonecontinent= 'South America';
-    if( $country == 'AM' ) $phonecontinent= 'Asia';
-    if( $country == 'AW' ) $phonecontinent= 'North America';
-    if( $country == 'AU' ) $phonecontinent= 'Oceania';
-    if( $country == 'AT' ) $phonecontinent= 'Europe';
-    if( $country == 'AZ' ) $phonecontinent= 'Asia';
-    if( $country == 'BS' ) $phonecontinent= 'North America';
-    if( $country == 'BH' ) $phonecontinent= 'Asia';
-    if( $country == 'BD' ) $phonecontinent= 'Asia';
-    if( $country == 'BB' ) $phonecontinent= 'North America';
-    if( $country == 'BY' ) $phonecontinent= 'Europe';
-    if( $country == 'BE' ) $phonecontinent= 'Europe';
-    if( $country == 'BZ' ) $phonecontinent= 'North America';
-    if( $country == 'BJ' ) $phonecontinent= 'Africa';
-    if( $country == 'BM' ) $phonecontinent= 'North America';
-    if( $country == 'BT' ) $phonecontinent= 'Asia';
-    if( $country == 'BO' ) $phonecontinent= 'South America';
-    if( $country == 'BA' ) $phonecontinent= 'Europe';
-    if( $country == 'BW' ) $phonecontinent= 'Africa';
-    if( $country == 'BV' ) $phonecontinent= 'Antarctica';
-    if( $country == 'BR' ) $phonecontinent= 'South America';
-    if( $country == 'IO' ) $phonecontinent= 'Asia';
-    if( $country == 'VG' ) $phonecontinent= 'North America';
-    if( $country == 'BN' ) $phonecontinent= 'Asia';
-    if( $country == 'BG' ) $phonecontinent= 'Europe';
-    if( $country == 'BF' ) $phonecontinent= 'Africa';
-    if( $country == 'BI' ) $phonecontinent= 'Africa';
-    if( $country == 'KH' ) $phonecontinent= 'Asia';
-    if( $country == 'CM' ) $phonecontinent= 'Africa';
-    if( $country == 'CA' ) $phonecontinent= 'North America';
-    if( $country == 'CV' ) $phonecontinent= 'Africa';
-    if( $country == 'KY' ) $phonecontinent= 'North America';
-    if( $country == 'CF' ) $phonecontinent= 'Africa';
-    if( $country == 'TD' ) $phonecontinent= 'Africa';
-    if( $country == 'CL' ) $phonecontinent= 'South America';
-    if( $country == 'CN' ) $phonecontinent= 'Asia';
-    if( $country == 'CX' ) $phonecontinent= 'Asia';
-    if( $country == 'CC' ) $phonecontinent= 'Asia';
-    if( $country == 'CO' ) $phonecontinent= 'South America';
-    if( $country == 'KM' ) $phonecontinent= 'Africa';
-    if( $country == 'CD' ) $phonecontinent= 'Africa';
-    if( $country == 'CG' ) $phonecontinent= 'Africa';
-    if( $country == 'CK' ) $phonecontinent= 'Oceania';
-    if( $country == 'CR' ) $phonecontinent= 'North America';
-    if( $country == 'CI' ) $phonecontinent= 'Africa';
-    if( $country == 'HR' ) $phonecontinent= 'Europe';
-    if( $country == 'CU' ) $phonecontinent= 'North America';
-    if( $country == 'CY' ) $phonecontinent= 'Asia';
-    if( $country == 'CZ' ) $phonecontinent= 'Europe';
-    if( $country == 'DK' ) $phonecontinent= 'Europe';
-    if( $country == 'DJ' ) $phonecontinent= 'Africa';
-    if( $country == 'DM' ) $phonecontinent= 'North America';
-    if( $country == 'DO' ) $phonecontinent= 'North America';
-    if( $country == 'EC' ) $phonecontinent= 'South America';
-    if( $country == 'EG' ) $phonecontinent= 'Africa';
-    if( $country == 'SV' ) $phonecontinent= 'North America';
-    if( $country == 'GQ' ) $phonecontinent= 'Africa';
-    if( $country == 'ER' ) $phonecontinent= 'Africa';
-    if( $country == 'EE' ) $phonecontinent= 'Europe';
-    if( $country == 'ET' ) $phonecontinent= 'Africa';
-    if( $country == 'FO' ) $phonecontinent= 'Europe';
-    if( $country == 'FK' ) $phonecontinent= 'South America';
-    if( $country == 'FJ' ) $phonecontinent= 'Oceania';
-    if( $country == 'FI' ) $phonecontinent= 'Europe';
-    if( $country == 'FR' ) $phonecontinent= 'Europe';
-    if( $country == 'GF' ) $phonecontinent= 'South America';
-    if( $country == 'PF' ) $phonecontinent= 'Oceania';
-    if( $country == 'TF' ) $phonecontinent= 'Antarctica';
-    if( $country == 'GA' ) $phonecontinent= 'Africa';
-    if( $country == 'GM' ) $phonecontinent= 'Africa';
-    if( $country == 'GE' ) $phonecontinent= 'Asia';
-    if( $country == 'DE' ) $phonecontinent= 'Europe';
-    if( $country == 'GH' ) $phonecontinent= 'Africa';
-    if( $country == 'GI' ) $phonecontinent= 'Europe';
-    if( $country == 'GR' ) $phonecontinent= 'Europe';
-    if( $country == 'GL' ) $phonecontinent= 'North America';
-    if( $country == 'GD' ) $phonecontinent= 'North America';
-    if( $country == 'GP' ) $phonecontinent= 'North America';
-    if( $country == 'GU' ) $phonecontinent= 'Oceania';
-    if( $country == 'GT' ) $phonecontinent= 'North America';
-    if( $country == 'GG' ) $phonecontinent= 'Europe';
-    if( $country == 'GN' ) $phonecontinent= 'Africa';
-    if( $country == 'GW' ) $phonecontinent= 'Africa';
-    if( $country == 'GY' ) $phonecontinent= 'South America';
-    if( $country == 'HT' ) $phonecontinent= 'North America';
-    if( $country == 'HM' ) $phonecontinent= 'Antarctica';
-    if( $country == 'VA' ) $phonecontinent= 'Europe';
-    if( $country == 'HN' ) $phonecontinent= 'North America';
-    if( $country == 'HK' ) $phonecontinent= 'Asia';
-    if( $country == 'HU' ) $phonecontinent= 'Europe';
-    if( $country == 'IS' ) $phonecontinent= 'Europe';
-    if( $country == 'IN' ) $phonecontinent= 'Asia';
-    if( $country == 'ID' ) $phonecontinent= 'Asia';
-    if( $country == 'IR' ) $phonecontinent= 'Asia';
-    if( $country == 'IQ' ) $phonecontinent= 'Asia';
-    if( $country == 'IE' ) $phonecontinent= 'Europe';
-    if( $country == 'IM' ) $phonecontinent= 'Europe';
-    if( $country == 'IL' ) $phonecontinent= 'Asia';
-    if( $country == 'IT' ) $phonecontinent= 'Europe';
-    if( $country == 'JM' ) $phonecontinent= 'North America';
-    if( $country == 'JP' ) $phonecontinent= 'Asia';
-    if( $country == 'JE' ) $phonecontinent= 'Europe';
-    if( $country == 'JO' ) $phonecontinent= 'Asia';
-    if( $country == 'KZ' ) $phonecontinent= 'Asia';
-    if( $country == 'KE' ) $phonecontinent= 'Africa';
-    if( $country == 'KI' ) $phonecontinent= 'Oceania';
-    if( $country == 'KP' ) $phonecontinent= 'Asia';
-    if( $country == 'KR' ) $phonecontinent= 'Asia';
-    if( $country == 'KW' ) $phonecontinent= 'Asia';
-    if( $country == 'KG' ) $phonecontinent= 'Asia';
-    if( $country == 'LA' ) $phonecontinent= 'Asia';
-    if( $country == 'LV' ) $phonecontinent= 'Europe';
-    if( $country == 'LB' ) $phonecontinent= 'Asia';
-    if( $country == 'LS' ) $phonecontinent= 'Africa';
-    if( $country == 'LR' ) $phonecontinent= 'Africa';
-    if( $country == 'LY' ) $phonecontinent= 'Africa';
-    if( $country == 'LI' ) $phonecontinent= 'Europe';
-    if( $country == 'LT' ) $phonecontinent= 'Europe';
-    if( $country == 'LU' ) $phonecontinent= 'Europe';
-    if( $country == 'MO' ) $phonecontinent= 'Asia';
-    if( $country == 'MK' ) $phonecontinent= 'Europe';
-    if( $country == 'MG' ) $phonecontinent= 'Africa';
-    if( $country == 'MW' ) $phonecontinent= 'Africa';
-    if( $country == 'MY' ) $phonecontinent= 'Asia';
-    if( $country == 'MV' ) $phonecontinent= 'Asia';
-    if( $country == 'ML' ) $phonecontinent= 'Africa';
-    if( $country == 'MT' ) $phonecontinent= 'Europe';
-    if( $country == 'MH' ) $phonecontinent= 'Oceania';
-    if( $country == 'MQ' ) $phonecontinent= 'North America';
-    if( $country == 'MR' ) $phonecontinent= 'Africa';
-    if( $country == 'MU' ) $phonecontinent= 'Africa';
-    if( $country == 'YT' ) $phonecontinent= 'Africa';
-    if( $country == 'MX' ) $phonecontinent= 'North America';
-    if( $country == 'FM' ) $phonecontinent= 'Oceania';
-    if( $country == 'MD' ) $phonecontinent= 'Europe';
-    if( $country == 'MC' ) $phonecontinent= 'Europe';
-    if( $country == 'MN' ) $phonecontinent= 'Asia';
-    if( $country == 'ME' ) $phonecontinent= 'Europe';
-    if( $country == 'MS' ) $phonecontinent= 'North America';
-    if( $country == 'MA' ) $phonecontinent= 'Africa';
-    if( $country == 'MZ' ) $phonecontinent= 'Africa';
-    if( $country == 'MM' ) $phonecontinent= 'Asia';
-    if( $country == 'NA' ) $phonecontinent= 'Africa';
-    if( $country == 'NR' ) $phonecontinent= 'Oceania';
-    if( $country == 'NP' ) $phonecontinent= 'Asia';
-    if( $country == 'AN' ) $phonecontinent= 'North America';
-    if( $country == 'NL' ) $phonecontinent= 'Europe';
-    if( $country == 'NC' ) $phonecontinent= 'Oceania';
-    if( $country == 'NZ' ) $phonecontinent= 'Oceania';
-    if( $country == 'NI' ) $phonecontinent= 'North America';
-    if( $country == 'NE' ) $phonecontinent= 'Africa';
-    if( $country == 'NG' ) $phonecontinent= 'Africa';
-    if( $country == 'NU' ) $phonecontinent= 'Oceania';
-    if( $country == 'NF' ) $phonecontinent= 'Oceania';
-    if( $country == 'MP' ) $phonecontinent= 'Oceania';
-    if( $country == 'NO' ) $phonecontinent= 'Europe';
-    if( $country == 'OM' ) $phonecontinent= 'Asia';
-    if( $country == 'PK' ) $phonecontinent= 'Asia';
-    if( $country == 'PW' ) $phonecontinent= 'Oceania';
-    if( $country == 'PS' ) $phonecontinent= 'Asia';
-    if( $country == 'PA' ) $phonecontinent= 'North America';
-    if( $country == 'PG' ) $phonecontinent= 'Oceania';
-    if( $country == 'PY' ) $phonecontinent= 'South America';
-    if( $country == 'PE' ) $phonecontinent= 'South America';
-    if( $country == 'PH' ) $phonecontinent= 'Asia';
-    if( $country == 'PN' ) $phonecontinent= 'Oceania';
-    if( $country == 'PL' ) $phonecontinent= 'Europe';
-    if( $country == 'PT' ) $phonecontinent= 'Europe';
-    if( $country == 'PR' ) $phonecontinent= 'North America';
-    if( $country == 'QA' ) $phonecontinent= 'Asia';
-    if( $country == 'RE' ) $phonecontinent= 'Africa';
-    if( $country == 'RO' ) $phonecontinent= 'Europe';
-    if( $country == 'RU' ) $phonecontinent= 'Europe';
-    if( $country == 'RW' ) $phonecontinent= 'Africa';
-    if( $country == 'BL' ) $phonecontinent= 'North America';
-    if( $country == 'SH' ) $phonecontinent= 'Africa';
-    if( $country == 'KN' ) $phonecontinent= 'North America';
-    if( $country == 'LC' ) $phonecontinent= 'North America';
-    if( $country == 'MF' ) $phonecontinent= 'North America';
-    if( $country == 'PM' ) $phonecontinent= 'North America';
-    if( $country == 'VC' ) $phonecontinent= 'North America';
-    if( $country == 'WS' ) $phonecontinent= 'Oceania';
-    if( $country == 'SM' ) $phonecontinent= 'Europe';
-    if( $country == 'ST' ) $phonecontinent= 'Africa';
-    if( $country == 'SA' ) $phonecontinent= 'Asia';
-    if( $country == 'SN' ) $phonecontinent= 'Africa';
-    if( $country == 'RS' ) $phonecontinent= 'Europe';
-    if( $country == 'SC' ) $phonecontinent= 'Africa';
-    if( $country == 'SL' ) $phonecontinent= 'Africa';
-    if( $country == 'SG' ) $phonecontinent= 'Asia';
-    if( $country == 'SK' ) $phonecontinent= 'Europe';
-    if( $country == 'SI' ) $phonecontinent= 'Europe';
-    if( $country == 'SB' ) $phonecontinent= 'Oceania';
-    if( $country == 'SO' ) $phonecontinent= 'Africa';
-    if( $country == 'ZA' ) $phonecontinent= 'Africa';
-    if( $country == 'GS' ) $phonecontinent= 'Antarctica';
-    if( $country == 'ES' ) $phonecontinent= 'Europe';
-    if( $country == 'LK' ) $phonecontinent= 'Asia';
-    if( $country == 'SD' ) $phonecontinent= 'Africa';
-    if( $country == 'SR' ) $phonecontinent= 'South America';
-    if( $phonecuontry == 'SJ' ) $phonecontinent= 'Europe';
-    if( $phonecuontry == 'SZ' ) $phonecontinent= 'Africa';
-    if( $phonecuontry == 'SE' ) $phonecontinent= 'Europe';
-    if( $phonecuontry == 'CH' ) $phonecontinent= 'Europe';
-    if( $phonecuontry == 'SY' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'TW' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'TJ' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'TZ' ) $phonecontinent= 'Africa';
-    if( $phonecuontry == 'TH' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'TL' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'TG' ) $phonecontinent= 'Africa';
-    if( $phonecuontry == 'TK' ) $phonecontinent= 'Oceania';
-    if( $phonecuontry == 'TO' ) $phonecontinent= 'Oceania';
-    if( $phonecuontry == 'TT' ) $phonecontinent= 'North America';
-    if( $phonecuontry == 'TN' ) $phonecontinent= 'Africa';
-    if( $phonecuontry == 'TR' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'TM' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'TC' ) $phonecontinent= 'North America';
-    if( $phonecuontry == 'TV' ) $phonecontinent= 'Oceania';
-    if( $phonecuontry == 'UG' ) $phonecontinent= 'Africa';
-    if( $phonecuontry == 'UA' ) $phonecontinent= 'Europe';
-    if( $phonecuontry == 'AE' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'GB' ) $phonecontinent= 'Europe';
-    if( $phonecuontry == 'US' ) $phonecontinent= 'North America';
-    if( $phonecuontry == 'UM' ) $phonecontinent= 'Oceania';
-    if( $phonecuontry == 'VI' ) $phonecontinent= 'North America';
-    if( $phonecuontry == 'UY' ) $phonecontinent= 'South America';
-    if( $phonecuontry == 'UZ' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'VU' ) $phonecontinent= 'Oceania';
-    if( $phonecuontry == 'VE' ) $phonecontinent= 'South America';
-    if( $phonecuontry == 'VN' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'WF' ) $phonecontinent= 'Oceania';
-    if( $phonecuontry == 'EH' ) $phonecontinent= 'Africa';
-    if( $phonecuontry == 'YE' ) $phonecontinent= 'Asia';
-    if( $phonecuontry == 'ZM' ) $phonecontinent= 'Africa';
-    if( $phonecuontry == 'ZW' ) $phonecontinent= 'Africa';*/
+	/*if( $phonecountries == 'AF' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'AX' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'AL' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'DZ' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'AS' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'AD' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'AO' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'AI' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'AQ' ) $phonecontinent= 'Antarctica';
+    if( $phonecountries == 'AG' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'AR' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'AM' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'AW' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'AU' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'AT' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'AZ' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'BS' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'BH' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'BD' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'BB' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'BY' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'BE' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'BZ' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'BJ' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'BM' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'BT' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'BO' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'BA' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'BW' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'BV' ) $phonecontinent= 'Antarctica';
+    if( $phonecountries == 'BR' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'IO' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'VG' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'BN' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'BG' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'BF' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'BI' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'KH' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'CM' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'CA' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'CV' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'KY' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'CF' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'TD' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'CL' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'CN' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'CX' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'CC' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'CO' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'KM' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'CD' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'CG' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'CK' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'CR' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'CI' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'HR' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'CU' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'CY' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'CZ' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'DK' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'DJ' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'DM' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'DO' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'EC' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'EG' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'SV' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'GQ' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'ER' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'EE' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'ET' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'FO' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'FK' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'FJ' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'FI' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'FR' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'GF' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'PF' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'TF' ) $phonecontinent= 'Antarctica';
+    if( $phonecountries == 'GA' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'GM' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'GE' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'DE' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'GH' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'GI' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'GR' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'GL' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'GD' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'GP' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'GU' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'GT' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'GG' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'GN' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'GW' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'GY' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'HT' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'HM' ) $phonecontinent= 'Antarctica';
+    if( $phonecountries == 'VA' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'HN' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'HK' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'HU' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'IS' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'IN' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'ID' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'IR' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'IQ' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'IE' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'IM' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'IL' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'IT' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'JM' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'JP' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'JE' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'JO' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'KZ' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'KE' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'KI' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'KP' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'KR' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'KW' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'KG' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'LA' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'LV' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'LB' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'LS' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'LR' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'LY' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'LI' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'LT' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'LU' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'MO' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'MK' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'MG' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'MW' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'MY' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'MV' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'ML' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'MT' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'MH' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'MQ' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'MR' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'MU' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'YT' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'MX' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'FM' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'MD' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'MC' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'MN' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'ME' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'MS' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'MA' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'MZ' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'MM' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'NA' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'NR' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'NP' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'AN' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'NL' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'NC' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'NZ' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'NI' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'NE' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'NG' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'NU' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'NF' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'MP' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'NO' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'OM' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'PK' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'PW' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'PS' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'PA' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'PG' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'PY' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'PE' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'PH' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'PN' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'PL' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'PT' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'PR' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'QA' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'RE' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'RO' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'RU' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'RW' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'BL' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'SH' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'KN' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'LC' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'MF' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'PM' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'VC' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'WS' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'SM' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'ST' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'SA' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'SN' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'RS' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'SC' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'SL' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'SG' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'SK' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'SI' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'SB' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'SO' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'ZA' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'GS' ) $phonecontinent= 'Antarctica';
+    if( $phonecountries == 'ES' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'LK' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'SD' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'SR' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'SJ' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'SZ' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'SE' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'CH' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'SY' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'TW' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'TJ' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'TZ' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'TH' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'TL' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'TG' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'TK' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'TO' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'TT' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'TN' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'TR' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'TM' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'TC' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'TV' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'UG' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'UA' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'AE' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'GB' ) $phonecontinent= 'Europe';
+    if( $phonecountries == 'US' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'UM' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'VI' ) $phonecontinent= 'North America';
+    if( $phonecountries == 'UY' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'UZ' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'VU' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'VE' ) $phonecontinent= 'South America';
+    if( $phonecountries == 'VN' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'WF' ) $phonecontinent= 'Oceania';
+    if( $phonecountries == 'EH' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'YE' ) $phonecontinent= 'Asia';
+    if( $phonecountries == 'ZM' ) $phonecontinent= 'Africa';
+    if( $phonecountries == 'ZW' ) $phonecontinent= 'Africa';*/
 	 /*if($continent==$Phonecontinent){
 	$allCount=$allCount+1;
 	$sameCountryCount=$sameCountryCount+1;   
@@ -801,76 +865,20 @@ $allCount=$allCount;
 	$sameCountryCount=$sameCountryCount+1; 				
 		
 }*/
-echo $allCount;
-	echo $sameCountryCount;
-// получаем название региона
-$region_name = $api_result['region_name'];
-//echo $region_name;
-// получаем название города
-$city = $api_result['city'];
-//echo $city;
-		//$db=new mysqli('localhost', 'smedia', '', "smedia");
-	/*if(mysqli_connect_errno()){
-		printf("Error connect to DB:%S\n",mysqli_error($db));
-		exit();
-	}*/
-	//$query1="SELECT* FROM `smedia`";
-	//$RES=mysqli_query($db, $query1);
-//$result=mysqli_fetch_array($RES);	
-//var_dump($result[1]);
-	//$query="INSERT INTO `smedia` (id, Date, duration, Phone, ip)
-//VALUES (1, '2020-11-04', 3, 4, 5)";
-//mysqli_query($db, $query);	
-        $handle = fopen($this->_csv_file, "r"); //Открываем csv для чтения
-		$header = fgetcsv ($handle);	
+//echo $allCount;
+	//echo $sameCountryCount;
+	
 		//var_dump($header);
         //$array_line_full = array(); //Массив будет хранить данные из csv
         //Проходим весь csv-файл, и читаем построчно. 3-ий параметр разделитель поля
 		while (! feof ($handle)) {
         while (($data = fgetcsv($handle, 0, ",")) !== FALSE) { 
 		//var_dump($data);
-		$host = 'localhost';
-    $db   = 'smedia';
-    $user = 'smedia';
-    $pass = '';
-    $charset = 'utf8';
-	$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-		$db = new PDO($dsn, $user, $password, 
-    array(PDO::MYSQL_ATTR_LOCAL_INFILE => true)
-);
-   $ip = $db->prepare("SELECT ip FROM `smedia` WHERE id=6434");
-   $ip->execute();
-$iparray = $ip->fetchAll(PDO::FETCH_ARRAY);
-// print_r($iparray);
- $phone = $db->prepare("SELECT Phone FROM `smedia` WHERE id=6434");
-  $phone->execute();
-$phonearray = $phone->fetchAll(PDO::FETCH_ASSOC);
- print_r($phonearray);
-	$sth = $db->prepare("LOAD DATA  LOCAL INFILE  'cdrs.csv' 
-INTO TABLE `smedia`  
-FIELDS TERMINATED BY ','
-ESCAPED BY '\\'
-OPTIONALLY ENCLOSED BY '\"' 
-LINES TERMINATED BY ',,,\r\n'
-IGNORE 1 LINES 
-(@id, @Date, @duration, @Phone, @ip)
-SET Date = STR_TO_DATE(@Date, '%b-%d-%Y %h:%i:%s %p'),
-    Phone = TRIM(BOTH '\'' FROM @Phone),
-	 id = TRIM(BOTH '\'' FROM @id),
-    duration = 1 * TRIM(TRAILING 'Secs' FROM @duration),
-    ip = NULLIF(@ip, 'null')");
-	$sth->execute();
-$array = $sth->fetchAll(PDO::FETCH_ASSOC);
-// var_dump($array);
-
 				
-		
 }
 
 }
-
-
-        
+     
         fclose($handle); //Закрываем файл
         //return $array_line_full; //Возвращаем прочтенные данные
     }
