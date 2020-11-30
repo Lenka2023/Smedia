@@ -49,20 +49,7 @@ class CSV {
      */
     public function getCSV() {
 	
-		//$db=new mysqli('localhost', 'smedia', '', "smedia");
-	/*if(mysqli_connect_errno()){
-		printf("Error connect to DB:%S\n",mysqli_error($db));
-		exit();
-	}*/
-	//$query1="SELECT* FROM `smedia`";
-	//$RES=mysqli_query($db, $query1);
-//$result=mysqli_fetch_array($RES);	
-//var_dump($result[1]);
-	//$query="INSERT INTO `smedia` (id, Date, duration, Phone, ip)
-//VALUES (1, '2020-11-04', 3, 4, 5)";
-//mysqli_query($db, $query);	
-        $handle = fopen($this->_csv_file, "r"); //Открываем csv для чтения
-		$header = fgetcsv ($handle);
+		
 	$host = 'localhost';
     $db   = 'smedia';
     $user = 'smedia';
@@ -80,7 +67,23 @@ $db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
   Phone varchar(50) NOT NULL,
   ip varchar(50) NOT NULL);";
    $db->exec($table);*/
-   $ip = $db->prepare("SELECT ip FROM `smedia`");
+   if(($handle		=	fopen("cdrs.csv", "r")) !== FALSE){
+       while(($row	=	fgetcsv($handle)) !== FALSE){
+				$insval = $db->prepare("INSERT INTO `media`
+				(id, Date, duration, Phone, ip) 
+				VALUES 
+				('$row[0]', '$row[1]', '$row[2]', '$row[3]', '$row[4]')");
+ $insval->execute();
+		
+				
+}
+
+
+     
+        fclose($handle); //Закрываем файл
+        
+	}
+   $ip = $db->prepare("SELECT ip FROM `media`");
    $ip->execute();
 $iparray = $ip->fetchAll(PDO::FETCH_ASSOC);
 $ip0 = array();
@@ -89,17 +92,14 @@ $ip0 = array();
 									}
 //print_r($ip0);
 //print_r($iparray[1]);
- $phone = $db->prepare("SELECT Phone FROM `smedia` ");
+ $phone = $db->prepare("SELECT Phone FROM `media` ");
   $phone->execute();
 $phonearray = $phone->fetchAll(PDO::FETCH_ASSOC);
 $phone0 = array();
  foreach($phonearray as $key=>$value ){
 	array_push($phone0,$value['Phone']);
 									}
-//print_r($phone0);
-// print_r($phonearray);
-	
-// var_dump($array);
+
 
 $ccodes = array(
    '93' => 'AF',
@@ -328,12 +328,7 @@ $phonecountries= array();
  foreach($phonecountry as $key=>$value ){
 	array_push($phonecountries,$value);
 									}
-//print_r($phonecountries);
 
-/* foreach( $phonecountry as $key=>$value )
-    {
-var_dump( $value );
-}*/
 	
 	
 $country= array();
@@ -868,7 +863,7 @@ for($k=0;$k<100;$k++){
 }
  $allCount=0;
 	 $sameCountryCount=0;	
-//var_dump($phonecontinents);
+
 for($i=0;$i<100;$i++){
 	 if($continents[$i]==$Phonecontinents[$i]){
 	$allCount=$allCount+1;
@@ -879,29 +874,14 @@ $allCount=$allCount+1;
 	$sameCountryCount=$sameCountryCount; 				
 		
 }
-							}
-echo $allCount;
-//echo $sameCountryCount;
-	
-		//var_dump($header);
-        //$array_line_full = array(); //Массив будет хранить данные из csv
-        //Проходим весь csv-файл, и читаем построчно. 3-ий параметр разделитель поля
-	if(($handle		=	fopen("cdrs.csv", "r")) !== FALSE){
-       while(($row	=	fgetcsv($handle)) !== FALSE){
-				$insval = $db->prepare("INSERT INTO `media`
-				(id, Date, duration, Phone, ip) 
-				VALUES 
-				('$row[0]', '$row[1]', '$row[2]', '$row[3]', '$row[4]')");
- $insval->execute();
-		
-				
 }
-
-
-     
-        fclose($handle); //Закрываем файл
-        //return $array_line_full; //Возвращаем прочтенные данные
-	}
+echo "<h2>allCount:</h2>";							
+echo $allCount;
+echo "<h2>sameCountryCount:</h2>";
+echo $sameCountryCount;
+	
+		
+	
     }
  }
 
@@ -911,7 +891,7 @@ try {
     /**
      * Чтение из CSV  (и вывод на экран в красивом виде)
      */
-    echo "<h2>CSV до записи:</h2>";
+   
     $get_csv = $csv->getCSV();
    
  
