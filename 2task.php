@@ -17,7 +17,7 @@ set_time_limit(100);
  */
 class CSV {
  
-    private $_csv_file ="D:\Open_Server\OpenServer\domains\SMEDIA\cdrs.csv";
+    private $_csv_file ="cdrs.csv";
  
     /**
      * @param string $csv_file  - путь до csv-файла
@@ -61,8 +61,8 @@ class CSV {
 	//$query="INSERT INTO `smedia` (id, Date, duration, Phone, ip)
 //VALUES (1, '2020-11-04', 3, 4, 5)";
 //mysqli_query($db, $query);	
-        $handle = fopen($this->_csv_file, "r"); //Открываем csv для чтения
-		$header = fgetcsv ($handle);
+        //$handle = fopen($this->_csv_file, "r"); //Открываем csv для чтения
+		//$header = fgetcsv ($handle);
 	$host = 'localhost';
     $db   = 'smedia';
     $user = 'smedia';
@@ -902,16 +902,18 @@ echo $sameCountryCount;
 		//var_dump($header);
         //$array_line_full = array(); //Массив будет хранить данные из csv
         //Проходим весь csv-файл, и читаем построчно. 3-ий параметр разделитель поля
-		while (! feof ($handle)) {
-        while (($data = fgetcsv($handle, 0, ",")) !== FALSE) { 
-		
+		if(($handle		=	fopen("cdrs.csv", "r")) !== FALSE){
+       while(($row	=	fgetcsv($handle)) !== FALSE){
+				$insval = $db->prepare("INSERT INTO `media`(`id`, `Date`, `duration`, `Phone`, `ip`) VALUES ($row[1],$row[2],$row[3],$row[4], $row[5])");
+ $insval->execute();
 				
 }
 
-}
+
      
         fclose($handle); //Закрываем файл
         //return $array_line_full; //Возвращаем прочтенные данные
+		}
     }
  }
 
