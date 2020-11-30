@@ -61,8 +61,8 @@ class CSV {
 	//$query="INSERT INTO `smedia` (id, Date, duration, Phone, ip)
 //VALUES (1, '2020-11-04', 3, 4, 5)";
 //mysqli_query($db, $query);	
-        //$handle = fopen($this->_csv_file, "r"); //Открываем csv для чтения
-		//$header = fgetcsv ($handle);
+        $handle = fopen($this->_csv_file, "r"); //Открываем csv для чтения
+		$header = fgetcsv ($handle);
 	$host = 'localhost';
     $db   = 'smedia';
     $user = 'smedia';
@@ -98,23 +98,7 @@ $phone0 = array();
 									}
 //print_r($phone0);
 // print_r($phonearray);
-	$sth = $db->prepare("set global local_infile = 1;
-show variables like 'local_infile';
-	LOAD DATA  LOCAL INFILE  'D:\Open_Server\OpenServer\domains\SMEDIA\cdrs.csv'  
-INTO TABLE `smedia`  
-FIELDS TERMINATED BY ','
-ESCAPED BY '\\'
-OPTIONALLY ENCLOSED BY '\"' 
-LINES TERMINATED BY ',,,\r\n'
-IGNORE 1 LINES 
-(@id, @Date, @duration, @Phone, @ip)
-SET Date = STR_TO_DATE(@Date, '%b-%d-%Y %h:%i:%s %p'),
-    Phone = TRIM(BOTH '\'' FROM @Phone),
-	 id = TRIM(BOTH '\'' FROM @id),
-    duration = 1 * TRIM(TRAILING 'Secs' FROM @duration),
-    ip = NULLIF(@ip, 'null');");
-	$sth->execute();
-$array = $sth->fetchAll(PDO::FETCH_ASSOC);
+	
 // var_dump($array);
 
 $ccodes = array(
@@ -897,23 +881,21 @@ $allCount=$allCount+1;
 }
 							}
 echo $allCount;
-echo $sameCountryCount;
+//echo $sameCountryCount;
 	
 		//var_dump($header);
         //$array_line_full = array(); //Массив будет хранить данные из csv
         //Проходим весь csv-файл, и читаем построчно. 3-ий параметр разделитель поля
-		if(($handle		=	fopen("cdrs.csv", "r")) !== FALSE){
-       while(($row	=	fgetcsv($handle)) !== FALSE){
-				$insval = $db->prepare("INSERT INTO `media`(`id`, `Date`, `duration`, `Phone`, `ip`) VALUES ($row[1],$row[2],$row[3],$row[4], $row[5])");
- $insval->execute();
+		while (! feof ($handle)) {
+        while (($data = fgetcsv($handle, 0, ",")) !== FALSE) { 
+		
 				
 }
 
-
+}
      
         fclose($handle); //Закрываем файл
         //return $array_line_full; //Возвращаем прочтенные данные
-		}
     }
  }
 
