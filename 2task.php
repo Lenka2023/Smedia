@@ -9,13 +9,15 @@
 			<body>
 			
 <?php
+
+set_time_limit(100);
 /**
  * Класс для работы с csv-файлами 
  * @author дизайн студия ox2.ru  
  */
 class CSV {
  
-    private $_csv_file ="cdrs.csv";
+    private $_csv_file ="D:\Open_Server\OpenServer\domains\SMEDIA\cdrs.csv";
  
     /**
      * @param string $csv_file  - путь до csv-файла
@@ -46,8 +48,7 @@ class CSV {
      * @return array;
      */
     public function getCSV() {
-	 $allCount=0;
-	 $sameCountryCount=0;	
+	
 		//$db=new mysqli('localhost', 'smedia', '', "smedia");
 	/*if(mysqli_connect_errno()){
 		printf("Error connect to DB:%S\n",mysqli_error($db));
@@ -71,6 +72,14 @@ class CSV {
 		$db = new PDO($dsn, $user, $password, 
     array(PDO::MYSQL_ATTR_LOCAL_INFILE => true)
 );
+$db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+/*$table="CREATE TABLE media(
+  id int(11) NOT NULL,
+  Date datetime NOT NULL,
+  duration int(255) NOT NULL,
+  Phone varchar(50) NOT NULL,
+  ip varchar(50) NOT NULL);";
+   $db->exec($table);*/
    $ip = $db->prepare("SELECT ip FROM `smedia`");
    $ip->execute();
 $iparray = $ip->fetchAll(PDO::FETCH_ASSOC);
@@ -89,7 +98,9 @@ $phone0 = array();
 									}
 //print_r($phone0);
 // print_r($phonearray);
-	$sth = $db->prepare("LOAD DATA  LOCAL INFILE  'cdrs.csv' 
+	$sth = $db->prepare("set global local_infile = 1;
+show variables like 'local_infile';
+	LOAD DATA  LOCAL INFILE  'D:\Open_Server\OpenServer\domains\SMEDIA\cdrs.csv'  
 INTO TABLE `smedia`  
 FIELDS TERMINATED BY ','
 ESCAPED BY '\\'
@@ -101,7 +112,7 @@ SET Date = STR_TO_DATE(@Date, '%b-%d-%Y %h:%i:%s %p'),
     Phone = TRIM(BOTH '\'' FROM @Phone),
 	 id = TRIM(BOTH '\'' FROM @id),
     duration = 1 * TRIM(TRAILING 'Secs' FROM @duration),
-    ip = NULLIF(@ip, 'null')");
+    ip = NULLIF(@ip, 'null');");
 	$sth->execute();
 $array = $sth->fetchAll(PDO::FETCH_ASSOC);
 // var_dump($array);
@@ -341,11 +352,11 @@ var_dump( $value );
 }*/
 	
 	
-
+$country= array();
 for($i=0;$i<100;$i++){
 
 		
-		$ip='116.52.75.78'; 
+		
 $access_key = 'd9f000dbc0237078dfb39bf8033d244c';
 // инициализируем новый сеанс cURL
 $ch = curl_init('http://api.ipstack.com/'.$ip0[$i].'?access_key='.$access_key.'');
@@ -362,12 +373,15 @@ curl_close($ch);
 $api_result = json_decode($json, true);
 
 // получаем ISO-код страны
-$country = $api_result['country_code'];
-var_dump( $country);
+$countries = $api_result['country_code'];
+
+array_push($country,$countries);
+
 }
+//print_r( $country);
 $continents= array();
 for($j=0;$j<100;$j++){
-  /*if( $country[$j] == 'AF' ) $continent = 'Asia';
+  if( $country[$j] == 'AF' ) $continent = 'Asia';
     if( $country[$j] == 'AX' ) $continent = 'Europe';
     if( $country[$j] == 'AL' ) $continent = 'Europe';
     if( $country[$j] == 'DZ' ) $continent = 'Africa';
@@ -612,13 +626,15 @@ for($j=0;$j<100;$j++){
     if( $country[$j] == 'EH' ) $continent = 'Africa';
     if( $country[$j] == 'YE' ) $continent = 'Asia';
     if( $country[$j] == 'ZM' ) $continent = 'Africa';
-    if( $country[$j] == 'ZW' ) $continent = 'Africa';*/
+    if( $country[$j] == 'ZW' ) $continent = 'Africa';
 	array_push($continents,$continent);
+	
 }
+//var_dump($continents);
 $phonecontinents= array();
 
 for($k=0;$k<100;$k++){
-	/*if( $phonecountries[$k] == 'AF' ) $phonecontinent= 'Asia';
+	if( $phonecountries[$k] == 'AF' ) $phonecontinent= 'Asia';
     if( $phonecountries[$k] == 'AX' ) $phonecontinent= 'Europe';
     if( $phonecountries[$k] == 'AL' ) $phonecontinent= 'Europe';
     if( $phonecountries[$k] == 'DZ' ) $phonecontinent= 'Africa';
@@ -863,27 +879,32 @@ for($k=0;$k<100;$k++){
     if( $phonecountries[$k] == 'EH' ) $phonecontinent= 'Africa';
     if( $phonecountries[$k] == 'YE' ) $phonecontinent= 'Asia';
     if( $phonecountries[$k] == 'ZM' ) $phonecontinent= 'Africa';
-    if( $phonecountries[$k] == 'ZW' ) $phonecontinent= 'Africa';*/
+    if( $phonecountries[$k] == 'ZW' ) $phonecontinent= 'Africa';
 	array_push($phonecontinents,$phonecontinent);
 }
-
-	 /*if($continent==$Phonecontinent){
+ $allCount=0;
+	 $sameCountryCount=0;	
+//var_dump($phonecontinents);
+for($i=0;$i<100;$i++){
+	 if($continents[$i]==$Phonecontinents[$i]){
 	$allCount=$allCount+1;
-	$sameCountryCount=$sameCountryCount+1;   
-}else if($continent!=$Phonecontinent){	
-$allCount=$allCount;
-	$sameCountryCount=$sameCountryCount+1; 				
+	$sameCountryCount=$sameCountryCount+1; 
+	 }	
+else if($continents[$i]!=$Phonecontinents[$i]){	
+$allCount=$allCount+1;
+	$sameCountryCount=$sameCountryCount; 				
 		
-}*/
-//echo $allCount;
-	//echo $sameCountryCount;
+}
+							}
+echo $allCount;
+echo $sameCountryCount;
 	
 		//var_dump($header);
         //$array_line_full = array(); //Массив будет хранить данные из csv
         //Проходим весь csv-файл, и читаем построчно. 3-ий параметр разделитель поля
 		while (! feof ($handle)) {
         while (($data = fgetcsv($handle, 0, ",")) !== FALSE) { 
-		//var_dump($data);
+		
 				
 }
 
